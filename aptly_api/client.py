@@ -13,6 +13,7 @@ from aptly_api.parts.repos import ReposAPISection
 from aptly_api.parts.files import FilesAPISection
 from aptly_api.parts.snapshots import SnapshotAPISection
 from aptly_api.parts.mirrors import MirrorsAPISection
+from aptly_api.parts.tasks import TaskAPISection
 
 
 class Client:
@@ -34,6 +35,8 @@ class Client:
                                             ssl_cert=ssl_cert, http_auth=http_auth, timeout=timeout)
         self.mirrors = MirrorsAPISection(base_url=self.__aptly_server_url, ssl_verify=ssl_verify,
                                          ssl_cert=ssl_cert, http_auth=http_auth, timeout=timeout)
+        self.tasks = TaskAPISection(base_url=self.__aptly_server_url, ssl_verify=ssl_verify,
+                                        ssl_cert=ssl_cert, http_auth=http_auth, timeout=timeout)
 
     @property
     def aptly_server_url(self) -> str:
