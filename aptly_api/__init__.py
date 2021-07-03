@@ -19,4 +19,4 @@ version = "0.3.0"
 
 
 __all__ = ['Client', 'AptlyAPIException', 'version', 'Package', 'PublishEndpoint', 'Repo', 'FileReport',
-           'Snapshot', 'Mirror', 'Task']
+           'Snapshot', 'Mirror', 'Task', 'Db']
