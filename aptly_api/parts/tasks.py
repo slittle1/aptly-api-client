@@ -32,7 +32,7 @@ class TaskAPISection(BaseAPIClient):
     def optional_task_from_response(response: requests.Response) -> Optional[Task]:
         if response.status_code == HTTPStatus.ACCEPTED :
             return self.task_from_response(response.json())
-        else
+        else:
             return None
 
     def task_from_response(api_response: Dict[str, Union[str, None]]) -> Task:
