@@ -9,6 +9,7 @@ from typing import NamedTuple, Sequence, Optional, Dict, Union, cast, List
 from urllib.parse import quote
 
 import iso8601
+import response
 
 from aptly_api.base import BaseAPIClient, AptlyAPIException
 from aptly_api.parts.packages import Package, PackageAPISection
@@ -33,6 +34,13 @@ class SnapshotAPISection(BaseAPIClient):
             ) if "CreatedAt" in api_response else None,
         )
 
+    @staticmethod
+    def task_or_snapshot_from_response(response: requests.Response) -> Union[Snapshot, Task]:
+        if response.status_code = 202:
+            return TaskAPISection.task_from_response(response.json)
+        else:
+            return self.snapshot_from_response(response.json())
+
     def list(self, sort: str = 'name') -> Sequence[Snapshot]:
         if sort not in ['name', 'time']:
             raise AptlyAPIException("Snapshot LIST only supports two sort modes: 'name' and 'time'. %s is not "
@@ -43,7 +51,7 @@ class SnapshotAPISection(BaseAPIClient):
             ret.append(self.snapshot_from_response(rsnap))
         return ret
 
-    def create_from_repo(self, reponame: str, snapshotname: str, description: Optional[str] = None) -> Task:
+    def create_from_repo(self, reponame: str, snapshotname: str, description: Optional[str] = None) -> Optional[Task]:
         body = {
             "Name": snapshotname,
         }
@@ -51,32 +59,21 @@ class SnapshotAPISection(BaseAPIClient):
             body["Description"] = description
 
         resp = self.do_post("api/repos/%s/snapshots" % quote(reponame), json=body)
-        return TaskAPISection.task_from_response(resp.json())
+        return TaskAPISection.optional_task_from_response(resp)
 
-    def create_from_mirror(self, reponame: str, mirrorname: str, description: Optional[str] = None) -> Task:
-        body = {
-            "Name": mirrorname,
-        }
-        if description is not None:
-            body["Description"] = description
-
-        resp = self.do_post("api/mirrors/%s/snapshots" % quote(reponame), json=body)
-        return TaskAPISection.task_from_response(resp.json())
-
-    def create_from_mirror(self, mirrorname: str, snapshotname: str, description: Optional[str] = None) -> Snapshot:
+    def create_from_mirror(self, mirrorname: str, snapshotname: str, description: Optional[str] = None) -> Union[Task, Snapshot]:
         body = {
             "Name": snapshotname
         }
         if description is not None:
             body["Description"] = description
 
-        resp = self.do_post("api/mirrors/%s/snapshots" %
-                            quote(mirrorname), json=body)
-        return self.snapshot_from_response(resp.json())
+        resp = self.do_post("api/mirrors/%s/snapshots" % quote(mirrorname), json=body)
+        return self.task_or_snapshot_from_response(resp)
 
     def create_from_packages(self, snapshotname: str, description: Optional[str] = None,
                              source_snapshots: Optional[Sequence[str]] = None,
-                             package_refs: Optional[Sequence[str]] = None) -> Task:
+                             package_refs: Optional[Sequence[str]] = None) -> Optional[Task]:
         body = {
             "Name": snapshotname,
         }  # type: Dict[str, Union[str, Sequence[str]]]
@@ -90,10 +87,10 @@ class SnapshotAPISection(BaseAPIClient):
             body["PackageRefs"] = package_refs
 
         resp = self.do_post("api/snapshots", json=body)
-        return TaskAPISection.task_from_response(resp.json())
+        return TaskAPISection.optional_task_from_response(resp)
 
     def update(self, snapshotname: str, newname: Optional[str] = None,
-               newdescription: Optional[str] = None) -> Task:
+               newdescription: Optional[str] = None) -> Optional[Task]:
         if newname is None and newdescription is None:
             raise AptlyAPIException("When updating a Snapshot you must at lease provide either a new name or a "
                                     "new description.")
@@ -105,7 +102,7 @@ class SnapshotAPISection(BaseAPIClient):
             body["Description"] = newdescription
 
         resp = self.do_put("api/snapshots/%s" % quote(snapshotname), json=body)
-        return TaskAPISection.task_from_response(resp.json())
+        return TaskAPISection.optional_task_from_response(resp)
 
     def show(self, snapshotname: str) -> Snapshot:
         resp = self.do_get("api/snapshots/%s" % quote(snapshotname))
@@ -128,7 +125,7 @@ class SnapshotAPISection(BaseAPIClient):
             ret.append(PackageAPISection.package_from_response(rpkg))
         return ret
 
-    def delete(self, snapshotname: str, force: bool = False) -> Task:
+    def delete(self, snapshotname: str, force: bool = False) -> Optional[Task]:
         params = None
         if force:
             params = {
@@ -136,7 +133,7 @@ class SnapshotAPISection(BaseAPIClient):
             }
 
         resp = self.do_delete("api/snapshots/%s" % quote(snapshotname), params=params)
-        return TaskAPISection.task_from_response(resp.json())
+        return TaskAPISection.optional_task_from_response(resp)
 
     def diff(self, snapshot1: str, snapshot2: str) -> Sequence[Dict[str, str]]:
         resp = self.do_get("api/snapshots/%s/diff/%s" %

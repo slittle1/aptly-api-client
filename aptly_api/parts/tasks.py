@@ -4,6 +4,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import os
+import requests
+
 from typing import (
     NamedTuple,
     Sequence,
@@ -26,6 +28,12 @@ TaskState = {0: "IDLE", 1: "RUNNING", 2: "SUCCEEDED", 3: "FAILED"}
 
 class TaskAPISection(BaseAPIClient):
     @staticmethod
+    def optional_task_from_response(response: requests.Response) -> Optional[Task]:
+        if response.status_code = 202:
+            return self.task_from_response(response.json())
+        else
+            return None
+
     def task_from_response(api_response: Dict[str, Union[str, None]]) -> Task:
         return Task(
             id=api_response["ID"],

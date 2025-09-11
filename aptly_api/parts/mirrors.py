@@ -70,11 +70,12 @@ class MirrorsAPISection(BaseAPIClient):
             mirrors.append(self.mirror_from_response(mirr))
         return mirrors
 
-    def update(self, name: str, ignore_signatures: bool = False) -> None:
+    def update(self, name: str, ignore_signatures: bool = False) -> Optional[Task]:
         body = {}
         if ignore_signatures:
             body["IgnoreSignatures"] = ignore_signatures
-        self.do_put("api/mirrors/%s" % (quote(name)), json=body)
+        resp = self.do_put("api/mirrors/%s" % (quote(name)), json=body)
+        return TaskAPISection.optional_task_from_response(resp)
 
     def edit(self, name: str, newname: Optional[str] = None, archiveurl: Optional[str] = None,
              filter: Optional[str] = None, architectures: Optional[List[str]] = None,
@@ -122,7 +123,7 @@ class MirrorsAPISection(BaseAPIClient):
 
     def list_packages(self, name: str, query: Optional[str] = None, with_deps: bool = False,
                       detailed: bool = False) -> Sequence[Package]:
-        params = {}
+        params = {Optional[Task]
         if query is not None:
             params["q"] = query
         if with_deps:
@@ -137,8 +138,9 @@ class MirrorsAPISection(BaseAPIClient):
             ret.append(PackageAPISection.package_from_response(rpkg))
         return ret
 
-    def delete(self, name: str) -> None:
-        self.do_delete("api/mirrors/%s" % quote(name))
+    def delete(self, name: str) -> Optional[Task]:
+        resp = self.do_delete("api/mirrors/%s" % quote(name))
+        return TaskAPISection.optional_task_from_response(resp)
 
     def create(self, name: str, archiveurl: str, distribution: Optional[str] = None,
                filter: Optional[str] = None, components: Optional[List[str]] = None,

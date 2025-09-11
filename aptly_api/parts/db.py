@@ -10,6 +10,6 @@ from aptly_api.parts.tasks import TaskAPISection, Task
 
 
 class DbAPISection(BaseAPIClient):
-    def cleanup(self) -> Task:
+    def cleanup(self) -> Optional[Task]:
         resp = self.do_post("api/db/cleanup")
-        return TaskAPISection.task_from_response(resp.json())
+        return TaskAPISection.optional_task_from_response(resp)

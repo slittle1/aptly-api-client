@@ -3,6 +3,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+import requests
 from typing import NamedTuple, Sequence, Dict, Union, List, cast, Optional
 from urllib.parse import quote
 
@@ -42,6 +43,13 @@ class PublishAPISection(BaseAPIClient):
         )
 
     @staticmethod
+    def task_or_endpoint_from_response(response: requests.Response) -> Union[PublishEndpoint, Task]:
+        if response.status_code = 202:
+            return TaskAPISection.task_from_response(response.json)
+        else:
+            return self.endpoint_from_response(response.json())
+
+    @staticmethod
     def escape_prefix(prefix: str) -> str:
         if prefix == ".":
             return ":."
@@ -68,7 +76,7 @@ class PublishAPISection(BaseAPIClient):
                 sign_skip: bool = False, sign_batch: bool = True, sign_gpgkey: Optional[str] = None,
                 sign_keyring: Optional[str] = None, sign_secret_keyring: Optional[str] = None,
                 sign_passphrase: Optional[str] = None, sign_passphrase_file: Optional[str] = None,
-                acquire_by_hash: Optional[bool] = None) -> Task:
+                acquire_by_hash: Optional[bool] = None) -> Union[PublishEndpoint, Task]:
         """
         Example:
 
@@ -126,7 +134,7 @@ class PublishAPISection(BaseAPIClient):
         body["Signing"] = sign_dict
 
         resp = self.do_post(url, json=body)
-        return TaskAPISection.task_from_response(resp.json())
+        return self.task_or_endpoint_from_response(resp)
 
     def update(self, *, prefix: str, distribution: str,
                snapshots: Optional[Sequence[Dict[str, str]]] = None, force_overwrite: bool = False,
@@ -134,7 +142,7 @@ class PublishAPISection(BaseAPIClient):
                sign_keyring: Optional[str] = None, sign_secret_keyring: Optional[str] = None,
                sign_passphrase: Optional[str] = None, sign_passphrase_file: Optional[str] = None,
                skip_contents: Optional[bool] = False,
-               skip_cleanup: Optional[bool] = False) -> PublishEndpoint:
+               skip_cleanup: Optional[bool] = False) -> Union[PublishEndpoint, Task]:
         """
         Example:
 
@@ -181,12 +189,12 @@ class PublishAPISection(BaseAPIClient):
 
         resp = self.do_put("api/publish/%s/%s" %
                            (quote(self.escape_prefix(prefix)), quote(distribution),), json=body)
-        return self.endpoint_from_response(resp.json())
+        return self.task_or_endpoint_from_response(resp)
 
-    def drop(self, *, prefix: str, distribution: str, force_delete: bool = False) -> Task:
+    def drop(self, *, prefix: str, distribution: str, force_delete: bool = False) -> Optional[Task]:
         params = {}
         if force_delete:
             params["force"] = "1"
         resp = self.do_delete("api/publish/%s/%s" %
                               (quote(self.escape_prefix(prefix)), quote(distribution),), params=params)
-        return TaskAPISection.task_from_response(resp.json())
+        return TaskAPISection.optional_task_from_response(resp)
