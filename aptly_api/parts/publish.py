@@ -4,6 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import requests
+from http import HTTPStatus
 from typing import NamedTuple, Sequence, Dict, Union, List, cast, Optional
 from urllib.parse import quote
 
@@ -44,7 +45,7 @@ class PublishAPISection(BaseAPIClient):
 
     @staticmethod
     def task_or_endpoint_from_response(response: requests.Response) -> Union[PublishEndpoint, Task]:
-        if response.status_code = 202:
+        if response.status_code == HTTPStatus.ACCEPTED :
             return TaskAPISection.task_from_response(response.json)
         else:
             return self.endpoint_from_response(response.json())
