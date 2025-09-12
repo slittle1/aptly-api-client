@@ -109,12 +109,12 @@ class ReposAPISection(BaseAPIClient):
             )
         return repos
 
-    def delete(self, reponame: str, force: bool = False) -> Optional[Task]
+    def delete(self, reponame: str, force: bool = False) -> Task:
         resp = self.do_delete("api/repos/%s" % quote(reponame), params={"force": "1" if force else "0"})
         return TaskAPISection.optional_task_from_response(resp)
 
     def add_uploaded_file(self, reponame: str, dir: str, filename: Optional[str] = None,
-                          remove_processed_files: bool = True, force_replace: bool = False) -> Optional[Task]:
+                          remove_processed_files: bool = True, force_replace: bool = False) -> Task:
         params = {
             "noRemove": "0" if remove_processed_files else "1",
         }
@@ -129,7 +129,7 @@ class ReposAPISection(BaseAPIClient):
 
         return TaskAPISection.optional_task_from_response(resp)
 
-    def add_packages_by_key(self, reponame: str, *package_keys: str) -> Optional[Task]:
+    def add_packages_by_key(self, reponame: str, *package_keys: str) -> Task:
         resp = self.do_post("api/repos/%s/packages" % quote(reponame), json={
             "PackageRefs": package_keys,
         })

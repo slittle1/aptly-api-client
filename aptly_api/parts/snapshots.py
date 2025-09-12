@@ -10,7 +10,7 @@ from typing import NamedTuple, Sequence, Optional, Dict, Union, cast, List
 from urllib.parse import quote
 
 import iso8601
-import response
+import requests
 
 from aptly_api.base import BaseAPIClient, AptlyAPIException
 from aptly_api.parts.packages import Package, PackageAPISection
@@ -40,7 +40,7 @@ class SnapshotAPISection(BaseAPIClient):
         if response.status_code == HTTPStatus.ACCEPTED:
             return TaskAPISection.task_from_response(response.json)
         else:
-            return self.snapshot_from_response(response.json())
+            return SnapshotAPISection.snapshot_from_response(response.json())
 
     def list(self, sort: str = 'name') -> Sequence[Snapshot]:
         if sort not in ['name', 'time']:
@@ -52,7 +52,7 @@ class SnapshotAPISection(BaseAPIClient):
             ret.append(self.snapshot_from_response(rsnap))
         return ret
 
-    def create_from_repo(self, reponame: str, snapshotname: str, description: Optional[str] = None) -> Optional[Task]:
+    def create_from_repo(self, reponame: str, snapshotname: str, description: Optional[str] = None) -> Task:
         body = {
             "Name": snapshotname,
         }
@@ -74,7 +74,7 @@ class SnapshotAPISection(BaseAPIClient):
 
     def create_from_packages(self, snapshotname: str, description: Optional[str] = None,
                              source_snapshots: Optional[Sequence[str]] = None,
-                             package_refs: Optional[Sequence[str]] = None) -> Optional[Task]:
+                             package_refs: Optional[Sequence[str]] = None) -> Task:
         body = {
             "Name": snapshotname,
         }  # type: Dict[str, Union[str, Sequence[str]]]
@@ -91,7 +91,7 @@ class SnapshotAPISection(BaseAPIClient):
         return TaskAPISection.optional_task_from_response(resp)
 
     def update(self, snapshotname: str, newname: Optional[str] = None,
-               newdescription: Optional[str] = None) -> Optional[Task]:
+               newdescription: Optional[str] = None) -> Task:
         if newname is None and newdescription is None:
             raise AptlyAPIException("When updating a Snapshot you must at lease provide either a new name or a "
                                     "new description.")
@@ -126,7 +126,7 @@ class SnapshotAPISection(BaseAPIClient):
             ret.append(PackageAPISection.package_from_response(rpkg))
         return ret
 
-    def delete(self, snapshotname: str, force: bool = False) -> Optional[Task]:
+    def delete(self, snapshotname: str, force: bool = False) -> Task:
         params = None
         if force:
             params = {

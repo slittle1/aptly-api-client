@@ -48,7 +48,7 @@ class PublishAPISection(BaseAPIClient):
         if response.status_code == HTTPStatus.ACCEPTED :
             return TaskAPISection.task_from_response(response.json)
         else:
-            return self.endpoint_from_response(response.json())
+            return PublishAPISection.endpoint_from_response(response.json())
 
     @staticmethod
     def escape_prefix(prefix: str) -> str:
@@ -192,7 +192,7 @@ class PublishAPISection(BaseAPIClient):
                            (quote(self.escape_prefix(prefix)), quote(distribution),), json=body)
         return self.task_or_endpoint_from_response(resp)
 
-    def drop(self, *, prefix: str, distribution: str, force_delete: bool = False) -> Optional[Task]:
+    def drop(self, *, prefix: str, distribution: str, force_delete: bool = False) -> Task:
         params = {}
         if force_delete:
             params["force"] = "1"

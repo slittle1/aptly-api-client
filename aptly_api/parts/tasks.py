@@ -29,11 +29,12 @@ TaskState = {0: "IDLE", 1: "RUNNING", 2: "SUCCEEDED", 3: "FAILED"}
 
 class TaskAPISection(BaseAPIClient):
     @staticmethod
-    def optional_task_from_response(response: requests.Response) -> Optional[Task]:
+    def optional_task_from_response(response: requests.Response) -> Task:
         if response.status_code == HTTPStatus.ACCEPTED :
             return self.task_from_response(response.json())
         else:
-            return None
+            task = Task(0, "", "SUCCEEDED")
+            return task
 
     def task_from_response(api_response: Dict[str, Union[str, None]]) -> Task:
         return Task(

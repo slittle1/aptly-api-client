@@ -8,6 +8,7 @@ from urllib.parse import quote
 
 from aptly_api.base import BaseAPIClient
 from aptly_api.parts.packages import Package, PackageAPISection
+from aptly_api.parts.tasks import TaskAPISection, Task
 
 
 Mirror = NamedTuple('Mirror', [
@@ -70,7 +71,7 @@ class MirrorsAPISection(BaseAPIClient):
             mirrors.append(self.mirror_from_response(mirr))
         return mirrors
 
-    def update(self, name: str, ignore_signatures: bool = False) -> Optional[Task]:
+    def update(self, name: str, ignore_signatures: bool = False) -> Task:
         body = {}
         if ignore_signatures:
             body["IgnoreSignatures"] = ignore_signatures
@@ -123,7 +124,7 @@ class MirrorsAPISection(BaseAPIClient):
 
     def list_packages(self, name: str, query: Optional[str] = None, with_deps: bool = False,
                       detailed: bool = False) -> Sequence[Package]:
-        params = {Optional[Task]
+        params = {}
         if query is not None:
             params["q"] = query
         if with_deps:
@@ -138,7 +139,7 @@ class MirrorsAPISection(BaseAPIClient):
             ret.append(PackageAPISection.package_from_response(rpkg))
         return ret
 
-    def delete(self, name: str) -> Optional[Task]:
+    def delete(self, name: str) -> Task:
         resp = self.do_delete("api/mirrors/%s" % quote(name))
         return TaskAPISection.optional_task_from_response(resp)
 
