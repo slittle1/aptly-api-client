@@ -139,4 +139,4 @@ class ReposAPISection(BaseAPIClient):
         resp = self.do_delete("api/repos/%s/packages" % quote(reponame), json={
             "PackageRefs": package_keys,
         })
-        return TaskAPISection.task_from_response(resp.json())
+        return TaskAPISection.optional_task_from_response(resp.json())
