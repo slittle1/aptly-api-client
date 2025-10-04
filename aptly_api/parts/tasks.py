@@ -31,11 +31,12 @@ class TaskAPISection(BaseAPIClient):
     @staticmethod
     def optional_task_from_response(response: requests.Response) -> Task:
         if response.status_code == HTTPStatus.ACCEPTED :
-            return self.task_from_response(response.json())
+            return TaskAPISection.task_from_response(response.json())
         else:
             task = Task(0, "", "SUCCEEDED")
             return task
 
+    @staticmethod
     def task_from_response(api_response: Dict[str, Union[str, None]]) -> Task:
         return Task(
             id=api_response["ID"],

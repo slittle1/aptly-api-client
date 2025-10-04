@@ -38,7 +38,7 @@ class SnapshotAPISection(BaseAPIClient):
     @staticmethod
     def task_or_snapshot_from_response(response: requests.Response) -> Union[Snapshot, Task]:
         if response.status_code == HTTPStatus.ACCEPTED:
-            return TaskAPISection.task_from_response(response.json)
+            return TaskAPISection.task_from_response(response.json())
         else:
             return SnapshotAPISection.snapshot_from_response(response.json())
 

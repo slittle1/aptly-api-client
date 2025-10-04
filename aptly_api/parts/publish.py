@@ -46,7 +46,7 @@ class PublishAPISection(BaseAPIClient):
     @staticmethod
     def task_or_endpoint_from_response(response: requests.Response) -> Union[PublishEndpoint, Task]:
         if response.status_code == HTTPStatus.ACCEPTED :
-            return TaskAPISection.task_from_response(response.json)
+            return TaskAPISection.task_from_response(response.json())
         else:
             return PublishAPISection.endpoint_from_response(response.json())
 
