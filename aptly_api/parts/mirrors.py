@@ -118,6 +118,15 @@ class MirrorsAPISection(BaseAPIClient):
 
         self.do_put("api/mirrors/%s" % (quote(name)), json=body)
 
+    def drop(self, name: str, force: Optional[str] = None) -> Task:
+        body = {}
+        if force:
+            body["force"] = force
+
+        resp = self.do_delete("api/mirrors/%s" % quote(name), json=body)
+
+        return TaskAPISection.optional_task_from_response(resp)
+
     def show(self, name: str) -> Mirror:
         resp = self.do_get("api/mirrors/%s" % (quote(name)))
         return self.mirror_from_response(resp.json())
@@ -143,6 +152,7 @@ class MirrorsAPISection(BaseAPIClient):
         resp = self.do_delete("api/mirrors/%s" % quote(name))
         return TaskAPISection.optional_task_from_response(resp)
 
+  
     def create(self, name: str, archiveurl: str, distribution: Optional[str] = None,
                filter: Optional[str] = None, components: Optional[List[str]] = None,
                architectures: Optional[List[str]] = None, keyrings: Optional[List[str]] = None,
