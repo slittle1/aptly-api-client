@@ -71,20 +71,47 @@ class MirrorsAPISection(BaseAPIClient):
             mirrors.append(self.mirror_from_response(mirr))
         return mirrors
 
-    def update(self, name: str, ignore_signatures: bool = False) -> Task:
+    def update(self, name: str,  
+               keyrings: Sequence[str] = None,
+               ignore_checksums: Optional[bool] = None,
+               ignore_signatures: Optional[bool] = None,
+               force: Optional[bool] = None,
+               skip_existing_packages: Optional[bool] = None,
+               max_tries: Optional[int] = 1) -> Task:
         body = {}
+
+        if keyrings:
+            body["Keyrings"] = keyrings
+        if ignore_checksums:
+            body["IgnoreChecksums"] = ignore_checksums
         if ignore_signatures:
             body["IgnoreSignatures"] = ignore_signatures
-        resp = self.do_put("api/mirrors/%s" % (quote(name)), json=body)
+        if force:
+            body["ForceUpdate"] = force
+        if skip_existing_packages:
+            body["SkipExistingPackages"] = skip_existing_packages
+        if max_tries:
+            body["MaxTries"] = max_tries
+
+        resp = self.do_put("api/mirrors/%s" % quote(name), json=body)
+
         return TaskAPISection.optional_task_from_response(resp)
 
-    def edit(self, name: str, newname: Optional[str] = None, archiveurl: Optional[str] = None,
-             filter: Optional[str] = None, architectures: Optional[List[str]] = None,
-             components: Optional[List[str]] = None, keyrings: Optional[List[str]] = None,
-             filter_with_deps: bool = False, skip_existing_packages: bool = False,
-             download_sources: bool = False, download_udebs: bool = False,
-             skip_component_check: bool = False, ignore_checksums: bool = False,
-             ignore_signatures: bool = False, force_update: bool = False) -> None:
+    def edit(self, name: str,
+             newname: Optional[str] = None,
+             archiveurl: Optional[str] = None,
+             filter: Optional[str] = None,
+             architectures: Optional[List[str]] = None,
+             components: Optional[List[str]] = None,
+             keyrings: Optional[List[str]] = None,
+             filter_with_deps: bool = False,
+             skip_existing_packages: bool = False,
+             download_sources: bool = False,
+             download_udebs: bool = False,
+             skip_component_check: bool = False,
+             ignore_checksums: bool = False,
+             ignore_signatures: bool = False,
+             force_update: bool = False) -> None:
 
         body = {}  # type: T_BodyDict
         if newname:
@@ -153,12 +180,19 @@ class MirrorsAPISection(BaseAPIClient):
         return TaskAPISection.optional_task_from_response(resp)
 
   
-    def create(self, name: str, archiveurl: str, distribution: Optional[str] = None,
-               filter: Optional[str] = None, components: Optional[List[str]] = None,
-               architectures: Optional[List[str]] = None, keyrings: Optional[List[str]] = None,
-               download_sources: bool = False, download_udebs: bool = False,
-               download_installer: bool = False, filter_with_deps: bool = False,
-               skip_component_check: bool = False, skip_architecture_check: bool = False,
+    def create(self, name: str, 
+               archiveurl: str, 
+               distribution: Optional[str] = None,
+               filter: Optional[str] = None, 
+               components: Optional[List[str]] = None,
+               architectures: Optional[List[str]] = None, 
+               keyrings: Optional[List[str]] = None,
+               download_sources: bool = False, 
+               download_udebs: bool = False,
+               download_installer: bool = False, 
+               filter_with_deps: bool = False,
+               skip_component_check: bool = False, 
+               skip_architecture_check: bool = False,
                ignore_signatures: bool = False) -> Mirror:
         data = {
             "Name": name,
