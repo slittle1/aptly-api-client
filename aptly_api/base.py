@@ -4,7 +4,7 @@
 
 from typing import IO, TextIO, BinaryIO, Sequence, Dict, Tuple, Optional, Union, List, Any, MutableMapping, Iterable, \
     Mapping
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import requests
 from requests.auth import AuthBase
@@ -45,6 +45,20 @@ _datatype = Optional[
 ]
 
 
+def safe_urljoin(base: str, path: str) -> str:
+    parsed = urlparse(base)
+
+    # Detect the bug: no netloc, but path looks like host:port
+    if not parsed.netloc and ':' in parsed.path:
+        scheme = parsed.scheme or 'http'
+        # Split the first path segment off
+        host_port, _, remainder = parsed.path.partition('/')
+        fixed_base = f"{scheme}://{host_port}/"
+        return urljoin(fixed_base, path)
+
+    # Normal case (netloc parsed correctly)
+    return urljoin(base, path)
+
 class AptlyAPIException(Exception):
     def __init__(self, *args: Any, status_code: int = 0) -> None:
         super().__init__(*args)
@@ -84,7 +98,7 @@ class BaseAPIClient:
         return ret
 
     def _make_url(self, path: str) -> str:
-        return urljoin(self.base_url, path)
+        return safe_urljoin(self.base_url, path)
 
     def do_get(self, urlpath: str, params: Optional[Dict[str, str]] = None) -> requests.Response:
         resp = requests.get(self._make_url(urlpath), params=params, verify=self.ssl_verify,
